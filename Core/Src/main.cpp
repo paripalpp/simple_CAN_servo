@@ -110,21 +110,52 @@ int main(void)
   constexpr uint32_t can_id[] = {0x09};
   can.subscribe_message(can_id[0], stm_CAN::ID_type::std, stm_CAN::Frame_type::data, stm_CAN::FIFO::_0);
 
-  float angle[] = {0, 0, 0};
+  struct{
+    GPIO_PinState now;
+    GPIO_PinState prev;
+  } em_state = {GPIO_PIN_SET, GPIO_PIN_RESET};
 
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+  constexpr int servo_num = 13;
+  struct servo_table{
+	  TIM_HandleTypeDef* htim;
+	  uint32_t channel;
+	  uint16_t output = 0;
+  } servoes[] = {
+		  {&htim1, TIM_CHANNEL_1},
+		  {&htim1, TIM_CHANNEL_2},
+		  {&htim1, TIM_CHANNEL_3},
+		  {&htim2, TIM_CHANNEL_1},
+		  {&htim2, TIM_CHANNEL_2},
+		  {&htim2, TIM_CHANNEL_3},
+		  {&htim2, TIM_CHANNEL_4},
+		  {&htim3, TIM_CHANNEL_1},
+		  {&htim3, TIM_CHANNEL_2},
+		  {&htim3, TIM_CHANNEL_3},
+		  {&htim3, TIM_CHANNEL_4},
+		  {&htim4, TIM_CHANNEL_1},
+		  {&htim4, TIM_CHANNEL_2}
+  };
+  auto write_servo = [](struct servo_table* servo, uint32_t output){
+	  servo->output = 1125 + (int)(4275.0 / 65535.0 * output);
+	  __HAL_TIM_SetCompare(servo->htim, servo->channel, servo->output);
+  };
+  auto set_power = [&](bool state){
+	  if(state){
+		  HAL_GPIO_WritePin(pw_sw_out_GPIO_Port, pw_sw_out_Pin, GPIO_PIN_SET);
+		  for(auto &i : servoes){
+			  __HAL_TIM_SET_COMPARE(i.htim, i.channel, i.output);
+		  }
+	  }else{
+		  HAL_GPIO_WritePin(pw_sw_out_GPIO_Port, pw_sw_out_Pin, GPIO_PIN_RESET);
+		  for(auto &i : servoes){
+			  __HAL_TIM_SetCompare(i.htim, i.channel, 45000);
+		  }
+	  }
+  };
+
+  for(auto &i : servoes){
+	  HAL_TIM_PWM_Start(i.htim, i.channel);
+  }
 
   /* USER CODE END 2 */
 
@@ -132,15 +163,23 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  angle[0] = 0;
-	  __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, 1125 + (int)(4275 * angle[0]));
-	  HAL_Delay(1000);
-	  angle[0] = 0.5;
-	  __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, 1125 + (int)(4275 * angle[0]));
-	  HAL_Delay(1000);
-	  angle[0] = 1;
-	  __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, 1125 + (int)(4275 * angle[0]));
-	  HAL_Delay(1000);
+    em_state.now = HAL_GPIO_ReadPin(em_in_GPIO_Port, em_in_Pin);
+
+    if(em_state.now == GPIO_PIN_RESET){
+      if(em_state.prev == GPIO_PIN_SET)set_power(1);
+      uint8_t data[8];
+      CAN_RxHeaderTypeDef header;
+      if(can.read(stm_CAN::FIFO::_0, data, &header) && HAL_GPIO_ReadPin(em_in_GPIO_Port, em_in_Pin) == 0){
+        for (int i = 0; i < 4; i++){
+          write_servo(&servoes[i], data[i * 2] << 8 | data[i * 2 + 1]);
+        }
+      }
+    }else if(em_state.now == GPIO_PIN_SET){
+      set_power(0);
+      can.read(stm_CAN::FIFO::_0, nullptr);
+    }
+    em_state.prev = em_state.now;
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
