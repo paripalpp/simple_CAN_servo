@@ -1,0 +1,8 @@
+../Core/Src/CAN103xb.cpp:12:19:HAL_StatusTypeDef stm_CAN::CAN_103xb::send(uint32_t, stm_CAN::ID_type, stm_CAN::Frame_type, uint8_t*, uint32_t)	56	static
+../Core/Src/CAN103xb.cpp:26:19:HAL_StatusTypeDef stm_CAN::CAN_103xb::subscribe_message(uint32_t, stm_CAN::ID_type, stm_CAN::Frame_type, stm_CAN::FIFO)	80	static
+../Core/Src/CAN103xb.cpp:86:19:HAL_StatusTypeDef stm_CAN::CAN_103xb::unsubscribe_message(uint32_t, stm_CAN::ID_type, stm_CAN::Frame_type, stm_CAN::FIFO)	80	static
+../Core/Src/CAN103xb.cpp:153:13:stm_CAN::read_retval stm_CAN::CAN_103xb::read(stm_CAN::FIFO, uint8_t*)	56	static
+../Core/Src/CAN103xb.cpp:167:13:stm_CAN::read_retval stm_CAN::CAN_103xb::read(stm_CAN::FIFO, uint8_t*, CAN_RxHeaderTypeDef*)	32	static
+../Core/Src/CAN103xb.cpp:180:1:stm_CAN::CAN_103xb::CAN_103xb(CAN_HandleTypeDef*)	16	static
+../Core/Src/CAN103xb.cpp:186:1:stm_CAN::CAN_103xb::~CAN_103xb()	16	static
+../Core/Src/CAN103xb.cpp:186:1:virtual stm_CAN::CAN_103xb::~CAN_103xb()	16	static
