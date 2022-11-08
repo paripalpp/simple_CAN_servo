@@ -75,8 +75,8 @@ all: main-build
 main-build: simple_CAN_servo.elf secondary-outputs
 
 # Tool invocations
-simple_CAN_servo.elf simple_CAN_servo.map: $(OBJS) $(USER_OBJS) C:\Users\n-yuk_8pm8nx0\STM32CubeIDE\workspace_1.8.0\simple_CAN_servo\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "simple_CAN_servo.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\n-yuk_8pm8nx0\STM32CubeIDE\workspace_1.8.0\simple_CAN_servo\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="simple_CAN_servo.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+simple_CAN_servo.elf simple_CAN_servo.map: $(OBJS) $(USER_OBJS) C:\Users\n-yuk\STM32CubeIDE\workspace_1.9.0\simple_CAN_servo\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "simple_CAN_servo.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\n-yuk\STM32CubeIDE\workspace_1.9.0\simple_CAN_servo\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="simple_CAN_servo.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

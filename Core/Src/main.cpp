@@ -107,7 +107,7 @@ int main(void)
   MX_USB_PCD_Init();
   /* USER CODE BEGIN 2 */
   stm_CAN::CAN_103xb can(&hcan);
-  constexpr uint32_t can_id[] = {0x09};
+  constexpr uint32_t can_id[] = {0x0f};
   can.subscribe_message(can_id[0], stm_CAN::ID_type::std, stm_CAN::Frame_type::data, stm_CAN::FIFO::_0);
 
   struct{
@@ -135,8 +135,8 @@ int main(void)
 		  {&htim4, TIM_CHANNEL_1},
 		  {&htim4, TIM_CHANNEL_2}
   };
-  auto write_servo = [](struct servo_table* servo, uint32_t output){
-	  servo->output = 1125 + (int)(4275.0 / 65535.0 * output);
+  auto write_servo = [](struct servo_table* servo, uint8_t output){
+	  servo->output = 1125 + (int)(4275.0 / 255.0 * output);
 	  __HAL_TIM_SetCompare(servo->htim, servo->channel, servo->output);
   };
   auto set_power = [&](bool state){
@@ -156,6 +156,7 @@ int main(void)
   for(auto &i : servoes){
 	  HAL_TIM_PWM_Start(i.htim, i.channel);
   }
+  set_power(1);
 
   /* USER CODE END 2 */
 
@@ -170,13 +171,17 @@ int main(void)
       uint8_t data[8];
       CAN_RxHeaderTypeDef header;
       if(can.read(stm_CAN::FIFO::_0, data, &header) && HAL_GPIO_ReadPin(em_in_GPIO_Port, em_in_Pin) == 0){
-        for (int i = 0; i < 4; i++){
-          write_servo(&servoes[i], data[i * 2] << 8 | data[i * 2 + 1]);
+        for (int i = 0; i < 8; i++){
+          write_servo(&servoes[i], data[i]);
         }
       }
+//      for(servo_table &i : servoes){
+//        write_servo(&i, 255);
+//      }
     }else if(em_state.now == GPIO_PIN_SET){
       set_power(0);
-      can.read(stm_CAN::FIFO::_0, nullptr);
+      uint8_t data[8];
+      can.read(stm_CAN::FIFO::_0, data);
     }
     em_state.prev = em_state.now;
 
@@ -362,7 +367,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 15;
+  htim2.Init.Prescaler = 31;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 44999;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -423,7 +428,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 15;
+  htim3.Init.Prescaler = 31;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 44999;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -484,7 +489,7 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 15;
+  htim4.Init.Prescaler = 31;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 44999;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
